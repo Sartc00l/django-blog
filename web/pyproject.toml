@@ -1,8 +1,11 @@
 [tool.poetry]
-name = "Django Template"
+name = "Django Temp"
 version = "0.1.0"
 description = ""
 authors = ["Nazarii <bandirom@ukr.net>"]
+packages = [
+  {include = "src",from = "."}
+]
 
 [tool.poetry.dependencies]
 python = "^3.12"

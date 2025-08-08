@@ -1,9 +1,12 @@
 from typing import TYPE_CHECKING, NamedTuple
 from urllib.parse import urlencode, urljoin
 
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 from django.db import transaction
+from django.db.utils import IntegrityError
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.response import Response
@@ -68,8 +71,21 @@ class AuthAppService:
     @transaction.atomic()
     def create_user(self, validated_data: dict):
         data = CreateUserData(**validated_data)
-        print(f'{data=}')
-        return User
+
+        user = User.objects.create(
+            email=data.email,
+            first_name = data.first_name,
+            last_name = data.last_name,
+            is_active= False,
+            password = make_password(data.password_1)
+        )
+        self._send_confrimation_email(user)
+        return user
+    
+    def _send_confrimation_email(self,user):
+        email_handler = ConfirmationEmailHandler(user)
+        email_handler.send_email()
+
 
 
 def full_logout(request):
