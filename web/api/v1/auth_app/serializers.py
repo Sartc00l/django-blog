@@ -79,11 +79,5 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 class VerifyEmailSerializer(serializers.Serializer):
     key = serializers.CharField()
 
-    def validate_key(self,value):
-        try:
-            signer = signing.TimestampSigner()
-            email = signer.unsign(value,max_age=ConfirmationEmailHandler.EXPIRATION_SECONDS)
-            return email
-        except signing.SignatureExpired:
-            raise serializers.ValidationError(_("Confrimation link has expired"))
+    
 

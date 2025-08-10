@@ -24,18 +24,15 @@ class SignUpView(GenericAPIView):
 
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
-        try :
-            service = AuthAppService()
-            service.create_user(serializer.validated_data)
-            return Response(
-                {'detail': _('Confirmation email has been sent')},
-                status=status.HTTP_201_CREATED,
-            )
-        except Exception as e: 
-            logger.error(f"registration failed {str(e)}")
-            return Response({"error": str(e)},status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+
+
+        service = AuthAppService()
+        service.create_user(serializer.validated_data)
+        return Response(
+            {'detail': _('Confirmation email has been sent')},
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class LoginView(auth_views.LoginView):
@@ -86,18 +83,8 @@ class VerifyEmailView(GenericAPIView):
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        email = serializer.validated_data
-        user = User.objects.get(email=email)
 
-        if user.is_active:
-            return Response(
-                {'detail':_('Email already verified')},
-                 status=status.HTTP_400_BAD_REQUEST
-            )
+        AuthAppService.verify_email_confrimation(serializer.validated_data['key'])
+        return Response({'detail':'ura'},status=200)
         
-        user.is_active = True
-        user.save()
-        return Response(
-            {'detail': _('Email verified')},
-            status=status.HTTP_200_OK,
-        )
+        

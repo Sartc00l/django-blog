@@ -14,6 +14,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.exceptions import ValidationError
 
 from api.email_services import BaseEmailHandler
 
@@ -43,8 +44,7 @@ class ConfirmationEmailHandler(BaseEmailHandler):
 
 
     def _generate_confrimation_key(self) -> str:
-        signer = signing.TimestampSigner()
-        return signer.sign(self.user.email)
+        return signing.dumps(self.user.id)
     
     def _get_activate_url(self) -> str:
         url = urljoin(self.FRONTEND_URL, self.FRONTEND_PATH)
@@ -82,12 +82,12 @@ class AuthAppService:
     def create_user(self, validated_data: dict):
         data = CreateUserData(**validated_data)
 
-        user = User.objects.create(
+        user = User.objects.create_user(
             email=data.email,
             first_name = data.first_name,
             last_name = data.last_name,
             is_active= False,
-            password = make_password(data.password_1)
+            password = data.password_1
         )
         self._send_confrimation_email(user)
         logger.info("Сделал юзера!!!!!!!")
@@ -96,6 +96,17 @@ class AuthAppService:
     def _send_confrimation_email(self,user):
         email_handler = ConfirmationEmailHandler(user)
         email_handler.send_email()
+    @staticmethod
+    def verify_email_confrimation(key:str) :
+        user_id = signing.loads(key,max_age=ConfirmationEmailHandler.EXPIRATION_SECONDS)
+        user=User.objects.get(id=user_id)
+        if user.is_active:
+            raise ValidationError(_("Confrimation link has expired"))
+        user.is_active = True
+        user.save(update_fields=['is_active'])
+        return user
+
+
 
 
 

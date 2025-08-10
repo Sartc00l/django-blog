@@ -1,13 +1,9 @@
 {% extends 'base.html' %}
+{%load static%}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <h1>URA</h1>
-</body>
-</html>
+  {% block container %}
+  <h1>Verified</h1>
+  {% endblock container %}
+{% block jquery %}
+$.getScript('{% static 'auth_app/js/verifie-email.js' %}');
+{% endblock %}
