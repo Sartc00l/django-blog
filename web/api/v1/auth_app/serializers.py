@@ -2,6 +2,8 @@ from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
+from django.core import signing
+from api.v1.auth_app.services import ConfirmationEmailHandler
 
 from api.v1.auth_app.services import AuthAppService
 
@@ -76,3 +78,12 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
 class VerifyEmailSerializer(serializers.Serializer):
     key = serializers.CharField()
+
+    def validate_key(self,value):
+        try:
+            signer = signing.TimestampSigner()
+            email = signer.unsign(value,max_age=ConfirmationEmailHandler.EXPIRATION_SECONDS)
+            return email
+        except signing.SignatureExpired:
+            raise serializers.ValidationError(_("Confrimation link has expired"))
+

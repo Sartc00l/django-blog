@@ -1,7 +1,9 @@
 from typing import TYPE_CHECKING, NamedTuple
 from urllib.parse import urlencode, urljoin
+import logging
 
-
+from django.core import signing
+from django.core.signing import BadSignature,SignatureExpired
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
@@ -22,6 +24,7 @@ if TYPE_CHECKING:
 
 
 User: 'UserType' = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class CreateUserData(NamedTuple):
@@ -34,14 +37,20 @@ class CreateUserData(NamedTuple):
 
 class ConfirmationEmailHandler(BaseEmailHandler):
     FRONTEND_URL = settings.FRONTEND_URL
-    FRONTEND_PATH = '/confirm'
-    TEMPLATE_NAME = 'emails/verify_email.html'
+    FRONTEND_PATH = 'verify-email/'
+    TEMPLATE_NAME = 'email/verify_email.html'
+    EXPIRATION_SECONDS = 48 * 3600
 
+
+    def _generate_confrimation_key(self) -> str:
+        signer = signing.TimestampSigner()
+        return signer.sign(self.user.email)
+    
     def _get_activate_url(self) -> str:
         url = urljoin(self.FRONTEND_URL, self.FRONTEND_PATH)
         query_params: str = urlencode(
             {
-                'key': self.user.confirmation_key,
+                'key': self._generate_confrimation_key(),
             },
             safe=':+',
         )
@@ -54,6 +63,7 @@ class ConfirmationEmailHandler(BaseEmailHandler):
             'context': {
                 'user': self.user.full_name,
                 'activate_url': self._get_activate_url(),
+                'expiration_hours': int(self.EXPIRATION_SECONDS / 3600)
             },
         }
 
@@ -80,6 +90,7 @@ class AuthAppService:
             password = make_password(data.password_1)
         )
         self._send_confrimation_email(user)
+        logger.info("Сделал юзера!!!!!!!")
         return user
     
     def _send_confrimation_email(self,user):

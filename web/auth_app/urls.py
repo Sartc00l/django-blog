@@ -3,6 +3,7 @@ from django.views.generic import TemplateView
 
 from main.views import TemplateAPIView
 
+
 app_name = 'auth_app'
 
 
@@ -14,5 +15,5 @@ urlpatterns = [
         TemplateAPIView.as_view(template_name='auth_app/reset_password_sent.html'),
         name='reset_email_sent',
     ),
-    path('verify-email/', TemplateView.as_view(), name='account_verification'),
+    path('verify-email/', TemplateView.as_view(template_name='auth_app/verified.html'), name='account_verification'),
 ]

@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Optional
 
 from django.contrib.auth import get_user_model
 from django.utils.translation import get_language
+from django.template.loader import render_to_string
 
 from main.tasks import send_information_email
 

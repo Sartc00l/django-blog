@@ -10,7 +10,7 @@ services:
       - ./web/:/usr/src/web/
       - postgres_socket:/postgres_socket
     ports:
-      - "8008:8000"
+      - "8000:8000"
     environment:
       <<: *variables
     env_file:
