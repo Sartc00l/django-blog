@@ -1,9 +1,14 @@
 {% extends 'base.html' %}
 {%load static%}
 
-  {% block container %}
-  <h1>Verified</h1>
-  {% endblock container %}
+{% block container %}
+<div id ="messageDiv"> </div>
+<h3>You will be redirected to the login page</h1>
+<p id="timer"></p>
+
+{% endblock container %}
+
+
 {% block jquery %}
 $.getScript('{% static 'auth_app/js/verifie-email.js' %}');
 {% endblock %}

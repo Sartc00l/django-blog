@@ -37,7 +37,7 @@ class CreateUserData(NamedTuple):
 
 
 class ConfirmationEmailHandler(BaseEmailHandler):
-    FRONTEND_URL = settings.FRONTEND_URL
+    FRONTEND_URL: str = settings.FRONTEND_URL
     FRONTEND_PATH = 'verify-email/'
     TEMPLATE_NAME = 'email/verify_email.html'
     EXPIRATION_SECONDS = 48 * 3600
@@ -98,14 +98,25 @@ class AuthAppService:
         email_handler.send_email()
     @staticmethod
     def verify_email_confrimation(key:str) :
-        user_id = signing.loads(key,max_age=ConfirmationEmailHandler.EXPIRATION_SECONDS)
-        user=User.objects.get(id=user_id)
-        if user.is_active:
-            raise ValidationError(_("Confrimation link has expired"))
-        user.is_active = True
-        user.save(update_fields=['is_active'])
-        return user
-
+        try:
+            user_id = signing.loads(key,max_age=ConfirmationEmailHandler.EXPIRATION_SECONDS)
+            user=User.objects.get(id=user_id)
+            if user.is_active:
+                raise ValidationError(_("Confrimation link has expired"))
+            user.is_active = True
+            user.save(update_fields=['is_active'])
+            return user
+        except SignatureExpired:
+            raise Response(
+                {"error":"Link doens't valid. Time out"},
+                status=status.HTTP_410_GONE
+            )
+        except BadSignature:
+            raise Response(
+                {"error":"Invalid link"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
 
 
 

@@ -4,7 +4,7 @@ $(document).ready(function () {
     var form = $(this);
     var submitButton = form.find('.signup-btn');
 
-
+    
     submitButton.prop('disabled', true).text('Processing...');
 
     $.ajax({
