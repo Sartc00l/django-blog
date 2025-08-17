@@ -2,20 +2,11 @@ from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
-from django.core import signing
-from api.v1.auth_app.services import ConfirmationEmailHandler
 
+from .constants import AuthErrorMessage
 from api.v1.auth_app.services import AuthAppService
 
 User = get_user_model()
-
-error_messages = {
-    'not_verified': _('Email not verified'),
-    'not_active': _('Your account is not active. Please contact Your administrator'),
-    'wrong_credentials': _('Entered email or password is incorrect'),
-    'already_registered': _('User is already registered with this e-mail address'),
-    'password_not_match': _('The two password fields did not match'),
-}
 
 
 class UserSignUpSerializer(serializers.Serializer):
@@ -31,12 +22,12 @@ class UserSignUpSerializer(serializers.Serializer):
 
     def validate_email(self, email: str) -> str:
         if AuthAppService.is_user_exist(email):
-            raise serializers.ValidationError(_('User is already registered with this e-mail address.'))
+            raise serializers.ValidationError(AuthErrorMessage.ALREADY_REGISTERED)
         return email
 
     def validate(self, data: dict):
         if data['password_1'] != data['password_2']:
-            raise serializers.ValidationError({'password_2': error_messages['password_not_match']})
+            raise serializers.ValidationError({'password_2': AuthErrorMessage.PASSWORD_NOT_MATCH})
         return data
 
 
@@ -54,12 +45,12 @@ class LoginSerializer(serializers.Serializer):
         if not user:
             user = AuthAppService.get_user(email)
             if not user:
-                msg = {'email': error_messages['wrong_credentials']}
+                msg = {'email': AuthErrorMessage.WRONG_CREDENTIALS}#wrong credentials
                 raise serializers.ValidationError(msg)
             if not user.is_active:
-                msg = {'email': error_messages['not_active']}
+                msg = {'email': AuthErrorMessage.NOT_ACTIVE} # not active
                 raise serializers.ValidationError(msg)
-            msg = {'email': error_messages['wrong_credentials']}
+            msg = {'email': AuthErrorMessage.WRONG_CREDENTIALS} # wrong credentials
             raise serializers.ValidationError(msg)
         data['user'] = user
         return data
@@ -67,7 +58,10 @@ class LoginSerializer(serializers.Serializer):
 
 class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
-
+    def validate_email(self,value):
+        if not User.objects.filter(email=value).exists():
+            msg = {'email':AuthErrorMessage.EMAIL_NOT_EXIST}#email not exi
+            raise serializers.ValidationError(msg)
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
     password_1 = serializers.CharField(min_length=8, max_length=64)

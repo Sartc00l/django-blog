@@ -6,6 +6,7 @@ from django.core import signing
 from django.core.signing import BadSignature,SignatureExpired
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
 from django.db.utils import IntegrityError
@@ -16,9 +17,10 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.exceptions import ValidationError
 
+from .constants import AuthErrorMessage, FrontendPaths
 from api.email_services import BaseEmailHandler
-
 from main.decorators import except_shell
+
 
 if TYPE_CHECKING:
     from main.models import UserType
@@ -38,19 +40,19 @@ class CreateUserData(NamedTuple):
 
 class ConfirmationEmailHandler(BaseEmailHandler):
     FRONTEND_URL: str = settings.FRONTEND_URL
-    FRONTEND_PATH = 'verify-email/'
+    FRONTEND_PATH = FrontendPaths.VERIFY_EMAIL
     TEMPLATE_NAME = 'email/verify_email.html'
     EXPIRATION_SECONDS = 48 * 3600
 
 
-    def _generate_confrimation_key(self) -> str:
+    def _generate_confirmation_key(self) -> str:
         return signing.dumps(self.user.id)
     
     def _get_activate_url(self) -> str:
         url = urljoin(self.FRONTEND_URL, self.FRONTEND_PATH)
         query_params: str = urlencode(
             {
-                'key': self._generate_confrimation_key(),
+                'key': self._generate_confirmation_key(),
             },
             safe=':+',
         )
@@ -89,32 +91,34 @@ class AuthAppService:
             is_active= False,
             password = data.password_1
         )
-        self._send_confrimation_email(user)
-        logger.info("Сделал юзера!!!!!!!")
+        self._send_confirmation_email(user)
+        logger.info("User created")
         return user
     
-    def _send_confrimation_email(self,user):
+    def _send_confirmation_email(self,user):
         email_handler = ConfirmationEmailHandler(user)
         email_handler.send_email()
     @staticmethod
-    def verify_email_confrimation(key:str) :
+    def verify_email_confirmation(key:str) :
         try:
             user_id = signing.loads(key,max_age=ConfirmationEmailHandler.EXPIRATION_SECONDS)
             user=User.objects.get(id=user_id)
             if user.is_active:
-                raise ValidationError(_("Confrimation link has expired"))
+                raise ValidationError(
+                    AuthErrorMessage.LINK_ALREADY_ACTIVATED,
+                    code='link_already_activated')
             user.is_active = True
             user.save(update_fields=['is_active'])
             return user
         except SignatureExpired:
-            raise Response(
-                {"error":"Link doens't valid. Time out"},
-                status=status.HTTP_410_GONE
+            raise ValidationError(
+                AuthErrorMessage.LINK_EXPIRED,
+                code="link_expired"
             )
         except BadSignature:
-            raise Response(
-                {"error":"Invalid link"},
-                status=status.HTTP_400_BAD_REQUEST
+            raise ValidationError(
+                AuthErrorMessage.LINK_INVALID,
+                code="link_invalid"
             )
         
 

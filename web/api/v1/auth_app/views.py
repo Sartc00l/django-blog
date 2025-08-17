@@ -5,11 +5,14 @@ from typing import TYPE_CHECKING, NamedTuple
 import logging
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from .constants import AuthErrorMessage
 from . import serializers
+
 from .services import AuthAppService, full_logout
 
 if TYPE_CHECKING:
@@ -17,6 +20,21 @@ if TYPE_CHECKING:
 
 User: 'UserType' = get_user_model()
 logger = logging.getLogger(__name__)
+
+ERRORS_MAPPING = {
+    'link_already_activated':{
+        'detail':AuthErrorMessage.LINK_ALREADY_ACTIVATED,
+        'status':status.HTTP_400_BAD_REQUEST
+    },
+    'link_expired':{
+        'detail': AuthErrorMessage.LINK_EXPIRED,
+        'status':status.HTTP_410_GONE
+    },
+    'link_invalid':{
+        'detail':AuthErrorMessage.LINK_INVALID,
+        'status':status.HTTP_400_BAD_REQUEST
+    }
+}
 
 class SignUpView(GenericAPIView):
     permission_classes = (AllowAny,)
@@ -33,7 +51,6 @@ class SignUpView(GenericAPIView):
             {'detail': _('Confirmation email has been sent')},
             status=status.HTTP_201_CREATED,
         )
-
 
 class LoginView(auth_views.LoginView):
     serializer_class = serializers.LoginSerializer
@@ -79,12 +96,27 @@ class PasswordResetConfirmView(GenericAPIView):
 class VerifyEmailView(GenericAPIView):
     serializer_class = serializers.VerifyEmailSerializer
     permission_classes = (AllowAny,)
-
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        AuthAppService.verify_email_confrimation(serializer.validated_data['key'])
-        return Response({'detail':'ura'},status=200)
-        
+        try:
+            user = AuthAppService.verify_email_confirmation(serializer.validated_data['key'])
+            return Response(
+                {'detail':_('Email confrimed')},
+                status= status.HTTP_200_OK,
+            )
+        except ValidationError as e:
+            error_codes = e.get_codes()
+            #Для неизвестных ошибок это комментарии не от гпт....(честно)(а то запутаюсь)
+            error_cfg = ERRORS_MAPPING.get(
+                error_codes,
+                {
+                    'detail':AuthErrorMessage.LINK_INVALID,
+                    'status':status.HTTP_400_BAD_REQUEST
+                }
+            )
+            return Response(
+                {'detail':error_cfg['detail']},
+                status= error_cfg['status']
+            )
         
