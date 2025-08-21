@@ -45,12 +45,12 @@ class LoginSerializer(serializers.Serializer):
         if not user:
             user = AuthAppService.get_user(email)
             if not user:
-                msg = {'email': AuthErrorMessage.WRONG_CREDENTIALS}#wrong credentials
+                msg = {'email': AuthErrorMessage.WRONG_CREDENTIALS}
                 raise serializers.ValidationError(msg)
             if not user.is_active:
-                msg = {'email': AuthErrorMessage.NOT_ACTIVE} # not active
+                msg = {'email': AuthErrorMessage.NOT_ACTIVE}
                 raise serializers.ValidationError(msg)
-            msg = {'email': AuthErrorMessage.WRONG_CREDENTIALS} # wrong credentials
+            msg = {'email': AuthErrorMessage.WRONG_CREDENTIALS} 
             raise serializers.ValidationError(msg)
         data['user'] = user
         return data
@@ -58,10 +58,8 @@ class LoginSerializer(serializers.Serializer):
 
 class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    def validate_email(self,value):
-        if not User.objects.filter(email=value).exists():
-            msg = {'email':AuthErrorMessage.EMAIL_NOT_EXIST}#email not exi
-            raise serializers.ValidationError(msg)
+
+
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
     password_1 = serializers.CharField(min_length=8, max_length=64)

@@ -1,27 +1,7 @@
 from django.utils.translation import gettext_lazy as _
-"""
-ERRORS_MAPPING = {
-    'email_not_exists':{
-        'detail' : error_messages['email_not_exists'],
-        'status':status.HTTP_400_BAD_REQUEST,
-    },
-    'link_already_activated':{
-        'detail':error_messages['link_already_activated'],
-        'status':status.HTTP_400_BAD_REQUEST
-    },
-    'link_expired':{
-        'detail': error_messages['link_expired'],
-        'status':status.HTTP_410_GONE
-    },
-    'link_invalid':{
-        'detail':error_messages['link_invalid'],
-        'status':status.HTTP_400_BAD_REQUEST
-    }
-}
+from enum import Enum
 
-цикличный импорт приветствуется 
-"""
-class AuthErrorMessage:
+class AuthErrorMessage(Enum):
     NOT_VERIFIED = _('Email not verified')
     NOT_ACTIVE = _('Your account is not active. Please contact Your administrator')
     WRONG_CREDENTIALS = _('Entered email or password is incorrect')
@@ -32,5 +12,10 @@ class AuthErrorMessage:
     LINK_EXPIRED = _('Confirmation link has expired')
     LINK_INVALID = _('Invalid link')
 
+    @property
+    def detail(self):
+        return self.value
+
 class FrontendPaths:
     VERIFY_EMAIL = 'verify-email/'
+    RESET_PASSWORD_CONFRIM = 'api/v1/auth/password/reset/confirm/'

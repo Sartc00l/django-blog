@@ -15,18 +15,17 @@ User: 'UserType' = get_user_model()
 
 
 class BaseEmailHandler(ABC):
-    TEMPLATE_NAME: str = NotImplemented
-
-    def __init__(self, user: Optional[User] = None, language: Optional[str] = None):
+    def __init__(self,template_name:str, user: Optional[User] = None, language: Optional[str] = None):
         self.user = user
+        self.TEMPLATE_NAME = template_name
         self._locale: str = language or get_language()
 
     @property
     def locale(self) -> str:
         return self._locale
 
-    def send_email(self):
-        kwargs = self.email_kwargs()
+    def send_email(self,**kwargs):
+        kwargs = self.email_kwargs(**kwargs)
         default_kwargs = {
             'template_name': self.TEMPLATE_NAME,
             'letter_language': self.locale,
