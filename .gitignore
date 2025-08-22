@@ -27,3 +27,4 @@ coverage.xml
 db.sqlite3
 modules.txt
 .secrets.env
+docker/dev/web/Dockerfile

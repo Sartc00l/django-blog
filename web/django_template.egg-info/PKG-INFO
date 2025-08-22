@@ -3,7 +3,7 @@ Name: django-template
 Version: 0.0.0
 Summary: Django template in docker with docker-compose
 Home-page: https://github.com/bandirom/django-template
-Author: Nazarii Romanchenko
+Author: Nazarii Romanchenko and dimasik
 Classifier: Environment :: Web Environment
 Classifier: Framework :: Django
 Classifier: Framework :: Django :: 4.1

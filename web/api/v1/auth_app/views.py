@@ -107,33 +107,4 @@ class VerifyEmailView(GenericAPIView):
                 status=status.HTTP_200_OK,
             )
         except ValidationError as e:
-            error_codes = e.get_codes()
-            
-            # Обрабатываем разные форматы ошибок
-            if isinstance(error_codes, list):
-                # Если error_codes - это список, берем первый элемент
-                error_code = error_codes[0] if error_codes else 'link_invalid'
-            elif isinstance(error_codes, dict):
-                # Если error_codes - это словарь, извлекаем код из non_field_errors или первого поля
-                if 'non_field_errors' in error_codes:
-                    error_code = error_codes['non_field_errors'][0] if error_codes['non_field_errors'] else 'link_invalid'
-                else:
-                    # Берем первый код из первого поля
-                    first_field = next(iter(error_codes.values()))
-                    error_code = first_field[0] if first_field else 'link_invalid'
-            else:
-                error_code = 'link_invalid'
-            
-            # Для неизвестных ошибок
-            error_cfg = ERRORS_MAPPING.get(
-                error_code,
-                {
-                    'detail': AuthErrorMessage.LINK_INVALID.detail,
-                    'status': status.HTTP_400_BAD_REQUEST
-                }
-            )
-            return Response(
-                {'detail': error_cfg['detail']},
-                status=error_cfg['status']
-            )
-        
+            pass
