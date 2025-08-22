@@ -43,10 +43,6 @@ class CreateUserData(NamedTuple):
 
 
 class ConfirmationEmailHandler(BaseEmailHandler):
-   # FRONTEND_URL: str = settings.FRONTEND_URL
-    #FRONTEND_PATH = FrontendPaths.VERIFY_EMAIL
-    #TEMPLATE_NAME = 'email/verify_email.html'
-    #EXPIRATION_SECONDS = 48 * 3600
 
     def email_kwargs(self, **kwargs) -> dict:
         activate_url = kwargs.get('activate_url')
@@ -95,19 +91,19 @@ class VerifyEmailManager:
             user = User.objects.get(id=user_id)
             if user.is_active:
                 raise ValidationError(
-                    AuthErrorMessage.LINK_ALREADY_ACTIVATED.detail,
+                    AuthErrorMessage.LINK_ALREADY_ACTIVATED,
                     code='link_already_activated')
             user.is_active = True
             user.save(update_fields=['is_active'])
             return user
         except SignatureExpired:
             raise ValidationError(
-                AuthErrorMessage.LINK_EXPIRED.detail,
+                AuthErrorMessage.LINK_EXPIRED,
                 code="link_expired"
             )
         except BadSignature:
             raise ValidationError(
-                AuthErrorMessage.LINK_INVALID.detail,
+                AuthErrorMessage.LINK_INVALID,
                 code="link_invalid"
             )
         

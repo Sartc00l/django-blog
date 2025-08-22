@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, NamedTuple
 import logging
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError,ErrorDetail
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -23,15 +23,15 @@ logger = logging.getLogger(__name__)
 
 ERRORS_MAPPING = {
     'link_already_activated': {
-        'detail': AuthErrorMessage.LINK_ALREADY_ACTIVATED.detail,
+        'detail': AuthErrorMessage.LINK_ALREADY_ACTIVATED,
         'status': status.HTTP_400_BAD_REQUEST
     },
     'link_expired': {
-        'detail': AuthErrorMessage.LINK_EXPIRED.detail,
+        'detail': AuthErrorMessage.LINK_EXPIRED,
         'status': status.HTTP_410_GONE
     },
     'link_invalid': {
-        'detail': AuthErrorMessage.LINK_INVALID.detail,
+        'detail': AuthErrorMessage.LINK_INVALID,
         'status': status.HTTP_400_BAD_REQUEST
     }
 }
@@ -107,4 +107,10 @@ class VerifyEmailView(GenericAPIView):
                 status=status.HTTP_200_OK,
             )
         except ValidationError as e:
-            pass
+            error_detail:ErrorDetail = e.detail[0]
+            code = error_detail.code
+            error = ERRORS_MAPPING.get(code)
+            return Response(
+                {'detail':error['detail']},
+                status=error['status'],
+            )

@@ -16,7 +16,7 @@ function verifyEmail() {
         error: function (xhr) {
             var errors = xhr.responseJSON;
             if (errors) {
-                showMessage(errors)
+                showMessage(errors.detail)
             }
         }
     })

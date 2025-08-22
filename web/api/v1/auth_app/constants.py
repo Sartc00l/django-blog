@@ -1,7 +1,6 @@
 from django.utils.translation import gettext_lazy as _
-from enum import Enum
 
-class AuthErrorMessage(Enum):
+class AuthErrorMessage():
     NOT_VERIFIED = _('Email not verified')
     NOT_ACTIVE = _('Your account is not active. Please contact Your administrator')
     WRONG_CREDENTIALS = _('Entered email or password is incorrect')
@@ -11,10 +10,6 @@ class AuthErrorMessage(Enum):
     LINK_ALREADY_ACTIVATED = _('This email address is already verified')
     LINK_EXPIRED = _('Confirmation link has expired')
     LINK_INVALID = _('Invalid link')
-
-    @property
-    def detail(self):
-        return self.value
 
 class FrontendPaths:
     VERIFY_EMAIL = 'verify-email/'
