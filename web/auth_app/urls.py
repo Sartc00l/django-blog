@@ -12,7 +12,7 @@ urlpatterns = [
     path('register/', TemplateAPIView.as_view(template_name='auth_app/sign_up.html'), name='sign_up'),
     path(
         'password-recovery/',
-        TemplateAPIView.as_view(template_name='auth_app/reset_password_sent.html'),
+        TemplateAPIView.as_view(template_name='auth_app/reset_password.html'),
         name='reset_email_sent',
     ),
     path('verify-email/', TemplateAPIView.as_view(template_name='auth_app/verified.html'), name='account_verification'),

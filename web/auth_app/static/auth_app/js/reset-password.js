@@ -3,7 +3,7 @@ $('#forgotPasswordForm').submit(function (e) {
     var form = $(this);
     var resetBtn = form.find('#passwordBtn')
     $.ajax({
-        url:form.attr('action'),
+        url:'/api/v1/auth/password/reset/',
         type: 'POST',
         data:form.serialize(),
         dataType: 'json',

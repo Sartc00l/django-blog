@@ -42,7 +42,20 @@
 {% include 'auth_app/includes/forgot_password_modal.html' %}
 
 {% endblock container %}
+<script>
 
-{% block jquery %}
-$.getScript('{% static 'auth_app/js/login.js' %}');
-{% endblock %}
+  async function  loadScripts(params) {
+    const scripts = [
+      '{% static 'auth_app/js/login.js' %}',
+      '{% static 'auth_app/js/reset-password.js' %}'
+    ];
+    for (const script in scripts){
+      await new Promise((resolve)=> {
+        $.getScript(script).done(resolve)
+      });
+    }
+  }
+  $(document).ready(function(){
+    loadScripts()
+  });
+</script>
