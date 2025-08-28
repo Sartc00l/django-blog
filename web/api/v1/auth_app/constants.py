@@ -13,4 +13,4 @@ class AuthErrorMessage():
 
 class FrontendPaths:
     VERIFY_EMAIL = 'verify-email/'
-    RESET_PASSWORD_CONFRIM = 'api/v1/auth/password/reset/confirm/'
+    RESET_PASSWORD_CONFRIM = 'password-recovery/'

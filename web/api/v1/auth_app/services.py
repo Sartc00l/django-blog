@@ -113,11 +113,15 @@ class PasswordResetManager:
         self.token_gen = PasswordResetTokenGenerator()
 
     @staticmethod
-    def validate_email(self,value):
+    def validate_email(value):
         if not User.objects.filter(email=value).exists():
             msg = {'email':AuthErrorMessage.EMAIL_NOT_EXIST.detail}
             return msg
-        
+    
+    @staticmethod
+    @except_shell((User.DoesNotExist,))
+    def get_user(email: str) -> User:
+        return User.objects.get(email=email)
 
     def _generate_uid(self,user_id:int)->str:
         return urlsafe_base64_encode(force_bytes(user_id))
@@ -146,7 +150,15 @@ class PasswordResetManager:
         query_str = urlencode(params)
         base_url = urljoin(FRONTEND_URL,FRONTEND_PATH)
         return f'{base_url}?{query_str}'
-
+    
+    def send_reset_mail(self,email):
+        self.user = self.get_user(email)
+        handler = ConfirmationEmailHandler(user=self.user,template_name='email/reset_password.html')
+        activate_url = self.gen_url(self.user)
+        handler.send_email(
+            activate_url=activate_url,
+            expiration_hours=int(12*3600)
+        )
 
 class AuthAppService:
     @staticmethod

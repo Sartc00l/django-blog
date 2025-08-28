@@ -13,7 +13,7 @@
     <form id="loginForm" role="form" action="{% url 'api:v1:auth_app:sign-in' %}" method="post">
       {% csrf_token %}
       <fieldset>
-        <h2>Please Sign In</h2>
+        <h2 id = 'signs'>Please Sign In</h2>
         <hr class="colorgraph">
         <div id="emailGroup" class="form-group">
           <input type="email" name="email" id="email" class="form-control input-lg" placeholder="Email Address">
@@ -39,23 +39,12 @@
     </form>
   </div>
 </div>
+<div id ="messageDiv"> </div> <!--for debug-->
 {% include 'auth_app/includes/forgot_password_modal.html' %}
-
 {% endblock container %}
-<script>
 
-  async function  loadScripts(params) {
-    const scripts = [
-      '{% static 'auth_app/js/login.js' %}',
-      '{% static 'auth_app/js/reset-password.js' %}'
-    ];
-    for (const script in scripts){
-      await new Promise((resolve)=> {
-        $.getScript(script).done(resolve)
-      });
-    }
-  }
-  $(document).ready(function(){
-    loadScripts()
-  });
-</script>
+{% block jquery %}
+$.getScript('{% static 'auth_app/js/login.js' %}');
+$.getScript('{% static 'auth_app/js/reset-password.js' %}');
+{% endblock %}
+

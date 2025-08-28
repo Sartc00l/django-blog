@@ -13,7 +13,11 @@ from rest_framework.response import Response
 from .constants import AuthErrorMessage
 from . import serializers
 
-from .services import VerifyEmailManager,AuthAppService, full_logout
+from .services import (
+    VerifyEmailManager,
+    PasswordResetManager,
+    AuthAppService, 
+    full_logout)
 
 if TYPE_CHECKING:
     from main.models import UserType
@@ -73,6 +77,9 @@ class PasswordResetView(GenericAPIView):
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        
+        service = PasswordResetManager()
+        service.send_reset_mail(serializer.validated_data['email'])
         return Response(
             {'detail': _('Password reset e-mail has been sent.')},
             status=status.HTTP_200_OK,
