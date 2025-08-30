@@ -15,7 +15,7 @@ from . import serializers
 
 from .services import (
     VerifyEmailManager,
-    PasswordResetManager,
+    PasswodResetMessageService,
     AuthAppService, 
     full_logout)
 
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 ERRORS_MAPPING = {
     'link_already_activated': {
-        'detail': AuthErrorMessage.LINK_ALREADY_ACTIVATED,
+        'detail': AuthErrorMessage.USER_ALREADY_ACTIVATED,
         'status': status.HTTP_400_BAD_REQUEST
     },
     'link_expired': {
@@ -78,7 +78,7 @@ class PasswordResetView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        service = PasswordResetManager()
+        service = PasswodResetMessageService()
         service.send_reset_mail(serializer.validated_data['email'])
         return Response(
             {'detail': _('Password reset e-mail has been sent.')},
@@ -86,7 +86,7 @@ class PasswordResetView(GenericAPIView):
         )
 
 
-class PasswordResetConfirmView(GenericAPIView):
+class PasswordResetValidateView(GenericAPIView):
     serializer_class = serializers.PasswordResetConfirmSerializer
     permission_classes = (AllowAny,)
 
@@ -100,7 +100,20 @@ class PasswordResetConfirmView(GenericAPIView):
         )
 
 
-class VerifyEmailView(GenericAPIView):
+class PasswordResetValidateView(GenericAPIView):
+    serializer_class = serializers.PasswordResetValidateSerializer
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        return Response(
+            {'detail': True},
+            status=status.HTTP_200_OK,
+        )
+
+class VerifyEmailView(GenericAPIView): 
     serializer_class = serializers.VerifyEmailSerializer
     permission_classes = (AllowAny,)
     

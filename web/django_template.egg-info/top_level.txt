@@ -1,6 +1,0 @@
-api
-auth_app
-blog
-contact_us
-main
-src

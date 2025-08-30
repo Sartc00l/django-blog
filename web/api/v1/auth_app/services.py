@@ -91,7 +91,7 @@ class VerifyEmailManager:
             user = User.objects.get(id=user_id)
             if user.is_active:
                 raise ValidationError(
-                    AuthErrorMessage.LINK_ALREADY_ACTIVATED,
+                    AuthErrorMessage.USER_ALREADY_ACTIVATED,
                     code='link_already_activated')
             user.is_active = True
             user.save(update_fields=['is_active'])
@@ -106,17 +106,25 @@ class VerifyEmailManager:
                 AuthErrorMessage.LINK_INVALID,
                 code="link_invalid"
             )
-        
+
+class PasswordReset:
+    def __init__(self):
+        self.token_gen = PasswordResetTokenGenerator()
+
+    def _get_user(self,uid):
+        user = User.objects.get()
+    @transaction.atomic()
+    def reset_password(self):
+        pass
     
-class PasswordResetManager:
+class PasswodResetMessageService:
     def __init__(self): 
         self.token_gen = PasswordResetTokenGenerator()
 
     @staticmethod
-    def validate_email(value):
-        if not User.objects.filter(email=value).exists():
-            msg = {'email':AuthErrorMessage.EMAIL_NOT_EXIST.detail}
-            return msg
+    def validate_email(value) ->bool:
+        if user_ex:=User.objects.filter(email=value).exists():
+            return user_ex
     
     @staticmethod
     @except_shell((User.DoesNotExist,))
@@ -182,8 +190,8 @@ class AuthAppService:
             password = data.password_1
         )
         self._send_confirmation_email(user)
+        logger.info("User created") 
         return user
-    logger.info("User created") 
     
     def _send_confirmation_email(self,user):
         email_handler = VerifyEmailManager(user)

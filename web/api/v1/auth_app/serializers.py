@@ -60,12 +60,16 @@ class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
 
-
-class PasswordResetConfirmSerializer(serializers.Serializer):
-    password_1 = serializers.CharField(min_length=8, max_length=64)
-    password_2 = serializers.CharField(min_length=8, max_length=64)
+class PasswordResetValidateSerializer(serializers.Serializer):
     uid = serializers.CharField()
     token = serializers.CharField()
+    
+
+
+class PasswordResetConfirmSerializer(PasswordResetValidateSerializer):
+    password_1 = serializers.CharField(min_length=8, max_length=64)
+    password_2 = serializers.CharField(min_length=8, max_length=64)
+
 
 
 class VerifyEmailSerializer(serializers.Serializer):

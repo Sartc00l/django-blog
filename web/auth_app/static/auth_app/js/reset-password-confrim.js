@@ -1,8 +1,21 @@
+
+
 $(function () {
+    const queryParams = new URLSearchParams(window.location.search)
+    const uid = queryParams.get('uid')
+    const token = queryParams.get('token')
+
     $('#resetPasswordBtn').click(function(e){
         changePassword()
     })
 });
+const ValidateToken = (uid,token)=>{
+    $.ajax({
+        url:'/api/v1/auth/password/reset/validate',
+
+    })
+}
+
 function changePassword() {
     $.ajax({
         url: '/api/v1/auth/password/reset/confirm/',
