@@ -5,7 +5,7 @@ import logging
 from django.core import signing
 from django.conf import settings
 from django.utils.http import urlsafe_base64_decode,urlsafe_base64_encode
-from django.utils.encoding import force_bytes
+from django.utils.encoding import force_bytes,force_str
 from django.core.signing import BadSignature,SignatureExpired
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 class PasswordResetDTO(NamedTuple):
     uid:str
     token:str
+
 class CreateUserData(NamedTuple):
     first_name: str
     last_name: str
@@ -43,7 +44,6 @@ class CreateUserData(NamedTuple):
 
 
 class ConfirmationEmailHandler(BaseEmailHandler):
-
     def email_kwargs(self, **kwargs) -> dict:
         activate_url = kwargs.get('activate_url')
         exp_hours = kwargs.get('exp_hours')
@@ -59,7 +59,7 @@ class ConfirmationEmailHandler(BaseEmailHandler):
         }
 
 
-class VerifyEmailManager:
+class VerifyEmailManagerService:
     def __init__(self,user):
         self.user:UserType = user
 
@@ -107,15 +107,42 @@ class VerifyEmailManager:
                 code="link_invalid"
             )
 
-class PasswordReset:
+class PasswordResetService:
+
+    def _get_user(self,uid):
+        user_id = int(force_str(urlsafe_base64_decode(uid)))
+        return User.objects.get(id=user_id)
+    
+    def reset_password(self,password,uid):
+        user = self._get_user(uid=uid)
+        user.set_password(password)
+        user.save(update_fields=['password'])
+        return user
+
+class PasswordValidateTokenUidService:
     def __init__(self):
         self.token_gen = PasswordResetTokenGenerator()
 
-    def _get_user(self,uid):
-        user = User.objects.get()
-    @transaction.atomic()
-    def reset_password(self):
-        pass
+    def _uid_decode(self,uid):
+        try:
+            uid_decoded=int(force_str(urlsafe_base64_decode(uid)))
+            return uid_decoded
+        except (ValueError,TypeError,UnicodeDecodeError) as e:
+            raise ValidationError("Invalid UID")
+        
+            
+    def _validate_token(self,user,token:str)->bool:
+        a = self.token_gen.check_token(user,token) 
+        return a
+
+    def validate(self,uid,token)->bool:
+        try:
+            user_id = self._uid_decode(uid)
+            user = User.objects.get(id=user_id)
+            return self._validate_token(user=user,token=token)       
+        except ValidationError:
+            return False
+
     
 class PasswodResetMessageService:
     def __init__(self): 
@@ -137,8 +164,6 @@ class PasswodResetMessageService:
     def _generate_token(self,user):
         return self.token_gen.make_token(user)
     
-    def validate_token(self,user,token:str)->bool:
-        return self.token_gen.check_token(user,token) 
     
     def generate(self,user)->PasswordResetDTO:
         uid = self._generate_uid(user.id)
@@ -194,7 +219,7 @@ class AuthAppService:
         return user
     
     def _send_confirmation_email(self,user):
-        email_handler = VerifyEmailManager(user)
+        email_handler = VerifyEmailManagerService(user)
         email_handler.send_confirmation_email()
 
  

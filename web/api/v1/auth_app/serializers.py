@@ -29,6 +29,7 @@ class UserSignUpSerializer(serializers.Serializer):
         if data['password_1'] != data['password_2']:
             raise serializers.ValidationError({'password_2': AuthErrorMessage.PASSWORD_NOT_MATCH})
         return data
+    #нарушение dry -> используется только 2 раза
 
 
 class LoginSerializer(serializers.Serializer):
@@ -69,6 +70,11 @@ class PasswordResetValidateSerializer(serializers.Serializer):
 class PasswordResetConfirmSerializer(PasswordResetValidateSerializer):
     password_1 = serializers.CharField(min_length=8, max_length=64)
     password_2 = serializers.CharField(min_length=8, max_length=64)
+
+    def validate(self, data: dict):
+        if data['password_1'] != data['password_2']:
+            raise serializers.ValidationError({'password_2': AuthErrorMessage.PASSWORD_NOT_MATCH})
+        return data
 
 
 

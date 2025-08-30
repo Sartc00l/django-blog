@@ -14,8 +14,10 @@ from .constants import AuthErrorMessage
 from . import serializers
 
 from .services import (
-    VerifyEmailManager,
+    VerifyEmailManagerService,
     PasswodResetMessageService,
+    PasswordValidateTokenUidService,
+    PasswordResetService,
     AuthAppService, 
     full_logout)
 
@@ -69,8 +71,22 @@ class LogoutView(auth_views.LogoutView):
         response = full_logout(request)
         return response
 
-
 class PasswordResetView(GenericAPIView):
+    serializer_class = serializers.PasswordResetConfirmSerializer
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        service = PasswordResetService()
+        service.reset_password(password=serializer.validated_data['password_1'],uid=serializer.validated_data['uid'])
+        return Response(
+            {'detail': _('Password has been reset with the new password.')},
+            status=status.HTTP_200_OK,
+        )
+
+class PasswordResetEmailView(GenericAPIView):
     serializer_class = serializers.PasswordResetSerializer
     permission_classes = (AllowAny,)
 
@@ -87,30 +103,30 @@ class PasswordResetView(GenericAPIView):
 
 
 class PasswordResetValidateView(GenericAPIView):
-    serializer_class = serializers.PasswordResetConfirmSerializer
-    permission_classes = (AllowAny,)
-
-    def post(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(
-            {'detail': _('Password has been reset with the new password.')},
-            status=status.HTTP_200_OK,
-        )
-
-
-class PasswordResetValidateView(GenericAPIView):
     serializer_class = serializers.PasswordResetValidateSerializer
     permission_classes = (AllowAny,)
 
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
+        try: 
+            service = PasswordValidateTokenUidService()
+            val_status=service.validate(serializer.validated_data['uid'],
+                                        serializer.validated_data['token'],)
+            if not val_status:
+                return Response(
+                    {'detail':_('Invalid token')},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except ValidationError:
+            return Response(
+                {'detail':_('Something get wrong')},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
         return Response(
-            {'detail': True},
-            status=status.HTTP_200_OK,
+        {'detail': val_status},
+        status=status.HTTP_200_OK,
         )
 
 class VerifyEmailView(GenericAPIView): 
@@ -121,7 +137,7 @@ class VerifyEmailView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
-            user = VerifyEmailManager.verify_email_confirmation(serializer.validated_data['key'])
+            user = VerifyEmailManagerService.verify_email_confirmation(serializer.validated_data['key'])
             return Response(
                 {'detail': _('Email confirmed')},
                 status=status.HTTP_200_OK,

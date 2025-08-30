@@ -10,9 +10,9 @@ urlpatterns = [
     path('sign-up/', views.SignUpView.as_view(), name='sign-up'),
     path('sign-up/verify/', views.VerifyEmailView.as_view(), name='sign-up-verify'),
     path('logout/', views.LogoutView.as_view(), name='logout'),
-    path('password/reset/', views.PasswordResetView.as_view(), name='reset-password'),
-    path('password/reset/confirm/', views.PasswordResetValidateView.as_view(), name='reset-password-confirm'),
-    path('password/reset/validate' as_view(),name='reset-validate')  
+    path('password/reset/', views.PasswordResetEmailView.as_view(), name='reset-password'),
+    path('password/reset/confirm/', views.PasswordResetView.as_view(), name='reset-password-confirm'),
+    path('password/reset/validate', views.PasswordResetValidateView.as_view(),name='reset-validate'),
     path('token/refresh/', TokenRefreshView.as_view()),
     path('token/verify/', TokenVerifyView.as_view()),
 ]
