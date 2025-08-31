@@ -13,6 +13,7 @@ $(function () {
         e.preventDefault();
         const password1 = $('#password1').val()
         const password2 =$('#password2').val()
+        showMessage("btn click")
         changePassword(password1,password2,uid,token)
     })
 });
@@ -40,12 +41,12 @@ const ValidateToken = (uid,token)=>{
 }
 
 const changePassword=(password1,password2,uid,token)=>{
-    if(!password1||!password2){
+    if(!password1||!password2 && password1.length < 7){
         showMessage("Please fill empty fields")
         showMessage(password1,password2)
         return
     }
-    if (password1 !== password2){
+    if (password1 !== password2 && password1.length < 7){
         showMessage("Passwords don't match")
         return
     }
