@@ -5,8 +5,6 @@ $(function () {
     const uid = queryParams.get('uid')
     const token = queryParams.get('token')
 
-
-
     ValidateToken(uid,token)
 
     $('#resetPasswordBtn').click(function(e){
@@ -42,12 +40,12 @@ const ValidateToken = (uid,token)=>{
 
 const changePassword=(password1,password2,uid,token)=>{
     if(!password1||!password2 && password1.length < 7){
-        showMessage("Please fill empty fields")
-        showMessage(password1,password2)
+        showMessage("Please fill empty fields",'messageDiv')
+        showMessage(`password 1 ${password1} \npassword 2:${password2}`,'messageDiv')
         return
     }
     if (password1 !== password2 && password1.length < 7){
-        showMessage("Passwords don't match")
+        showMessage("Passwords don't match",'messageDiv')
         return
     }
     const passwordData={
@@ -63,36 +61,17 @@ const changePassword=(password1,password2,uid,token)=>{
         data: JSON.stringify(passwordData),
         contentType:'application/json',
         success: function (response) {
-            showMessage("Password has been changed!")
-            showMessage("You will be redirected to the login page")
+            showMessage("Password has been changed!",'messageDiv')
+            showMessage("You will be redirected to the login page",'messageDiv')
             timer(10)
         },
         error: function (xhr) {
             var errors = xhr.responseJSON
             if(errors && errors.detail){
-                showMessage(errors.detail)
+                showMessage(errors.detail,'messageDiv')
             }
         }
     })
 
-}
-
-function showPasswordForm(){
-    document.getElementById('PasswordResetForm').style.display='block'
-}
-
-function showMessage(message) {
-    const messageDiv = document.getElementById('messageDiv')
-    const tag = document.createElement("H1")
-    const informationContent = document.createTextNode(message)
-
-    tag.appendChild(informationContent)
-    messageDiv.appendChild(tag)
-
-}
-
-function timer(seconds) {
-    const timer = setInterval(() => { document.getElementById('timer').textContent = seconds < 0 
-        ? window.location.href = "../login" : seconds--; },1000)
 }
 

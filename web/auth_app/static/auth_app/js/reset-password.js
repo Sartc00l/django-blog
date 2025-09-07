@@ -1,5 +1,5 @@
-
-$('#forgotPasswordForm').submit(function (e) {
+$('#forgotPasswordForm').onload(e.preventDefault)
+$('#passwordBtn').onclick(function (e) {
     e.preventDefault()
     var form = $(this);
     var resetBtn = form.find('#passwordBtn')
@@ -10,14 +10,8 @@ $('#forgotPasswordForm').submit(function (e) {
         dataType: 'json',
     })
     $('#pwdModal').modal('hide');
-    showMessage("Message has been delivered")
+    showMessage("Message has been delivered",'messageDiv')
+    clearMessage('messageDiv',10000)
 })
 
-function showMessage(message) {
-    const messageDiv = document.getElementById('messageDiv')
-    const tag = document.createElement("H1")
-    const informationContent = document.createTextNode(message)
 
-    tag.appendChild(informationContent)
-    messageDiv.appendChild(tag)
-}

@@ -1,7 +1,12 @@
+$(function() {
+  $('#registerBtn').on('click',function(e){
+    e.preventDefault()
+    window.location.href = '../register'
+  })
+})
 $(function () {
   $('#loginForm').submit(login);
-});
-
+});ß
 function login(e) {
   let form = $(this);
   e.preventDefault();
